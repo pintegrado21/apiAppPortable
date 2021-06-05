@@ -107,6 +107,50 @@ class AireRoutes {
             });
             yield database_1.db.desconectarBD();
         });
+        this.getFecha3 = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { ano, mes, dia, hora, min, seg } = req.params;
+            console.log(ano, mes, dia, hora, min, seg);
+            yield database_1.db.conectarBD()
+                .then(() => __awaiter(this, void 0, void 0, function* () {
+                const query = yield aire_1.Aires.aggregate([
+                    {
+                        $match: {}
+                    },
+                    {
+                        $addFields: {
+                            "ano": { $toString: { $year: "$fecha" } },
+                            "mes": { $toString: { $month: "$fecha" } },
+                            "dia": { $toString: { $dayOfMonth: "$fecha" } },
+                            "hora": { $toString: { $hour: "$fecha" } },
+                            "min": { $toString: { $minute: "$fecha" } },
+                            "seg": { $toString: { $second: "$fecha" } }
+                        }
+                    },
+                    {
+                        $match: {
+                            "ano": ano,
+                            "mes": mes,
+                            "dia": dia,
+                            "hora": hora,
+                            "min": min,
+                            "seg": seg
+                        }
+                    },
+                    {
+                        $project: {
+                            "dato": ["$O3", "$NO2", "$CO"],
+                            "Latitud": 1,
+                            "Longitud": 1
+                        }
+                    }
+                ]);
+                res.json(query);
+            }))
+                .catch((mensaje) => {
+                res.send(mensaje);
+            });
+            yield database_1.db.desconectarBD();
+        });
         this._router = express_1.Router();
     }
     get router() {
@@ -116,6 +160,7 @@ class AireRoutes {
         this._router.get('/', this.getAires),
             this._router.get('/getFecha/:ano&:mes&:dia', this.getFecha),
             this._router.get('/getFecha2/:ano&:mes&:dia&:cont', this.getFecha2);
+        this._router.get('/getFecha3/:ano&:mes&:dia&:hora&:min&:seg', this.getFecha3);
     }
 }
 const obj = new AireRoutes();
